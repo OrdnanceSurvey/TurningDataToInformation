@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head profile="http://www.w3.org/2005/10/profile">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>GP Surgeries and Patients</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="http://libs.cartocdn.com/cartodb.js/v3/3.15/themes/css/cartodb.css" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../CSS/MarkerCluster.Default.css">
+    <link rel="stylesheet" href="../CSS/leaflet.extra-markers.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.10.1/bootstrap-table.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/c3/0.4.11/c3.min.css">
+
+  </head>
+
+  <style>
+    html, body {
+      height: 100%;
+      width: 100%;
+    }
+    body {
+      padding-top: 50px;
+    }
+
+    #map-container {
+      height: 45%;
+      padding: 0;
+    }
+
+    #map {
+      width: auto;
+      height: 100%;
+      box-shadow: 0 0 10px rgba(0,0,0,0.55);
+    }
+
+    #table-container {
+      height: 55%;
+      padding: 5px;
+      position: relative;
+      box-shadow: inset 0 8px 8px -8px #696868;
+    }
+
+    #sidebar {
+      width: 300px;
+      height: 45%;
+      max-width: 100%;
+      overflow-y: scroll;
+      float: left;
+      -webkit-transition: all 0.25s ease-out;
+      -moz-transition: all 0.25s ease-out;
+      transition: all 0.25s ease-out;
+    }
+
+    .navbar .navbar-brand {
+      font-weight: bold;
+      font-size: 25px;
+      color: #FFFFFF;
+    }
+    .navbar {
+      background-image: linear-gradient(to bottom, #2b6988 0%, #1f4b61 100%);
+    }
+    .navbar-inverse .navbar-nav>li>a {
+      color: #fff;
+    }
+
+  </style>
+
+  <body>
+
+    <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <div class="navbar-icon-container">
+            <a href="#" class="navbar-icon pull-right visible-xs" id="nav-btn"><i class="fa fa-bars fa-lg white"></i></a>
+            <a href="#" class="navbar-icon pull-right visible-xs" id="sidebar-toggle-btn"><i class="fa fa-search fa-lg white"></i></a>
+          </div>
+          <a class="navbar-brand" href="#">GP Surgeries and Patients</a>
+        </div>
+      </div>
+    </div>
+
+    <div id="sidebar">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title">Nearest GP Details</h3>
+        </div>
+        <div class="panel-body">
+          <ul class="list-group">
+
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div id="map-container">
+      <div id="map"></div>
+    </div>
+
+    <div id="table-container">
+      <table id="table" data-pagination="true" data-page-size="5">
+            <thead>
+            <tr>
+                <th data-field="surgery_na" data-sortable="true">Name</th>
+                <th data-field="total_doct">Total Doctors</th>
+                <th data-field="total_pati">Total Patients</th>
+                <th data-field="ratio">Ratio</th>
+            </tr>
+            </thead>
+        </table>
+    </div>
+
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+    <script type="text/javascript" src="http://libs.cartocdn.com/cartodb.js/v3/3.15/cartodb.js"></script>
+    <script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../JS/leaflet.markercluster.js"></script>
+    <script type="text/javascript" src="../JS/leaflet.extra-markers.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.10.1/bootstrap-table.min.js"></script>
+    <script type="text/javascript" src='https://api.tiles.mapbox.com/mapbox.js/plugins/turf/v2.0.2/turf.min.js'></script>
+    <script type="text/javascript" src='https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.js'></script>
+    <script type="text/javascript" src='https://cdnjs.cloudflare.com/ajax/libs/c3/0.4.11/c3.min.js'></script>
+    <script>
+
+    ////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////// Map Configuration //////////////////////////////////////////
+
+
+    // Define map configuration
+    var map = new L.Map('map', {
+      center: [53.069016659603896, -0.31036376953125],
+      zoom: 7
+    });
+
+
+    ////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////// Base Maps //////////////////////////////////////////////////
+
+    L.tileLayer('https://api2.ordnancesurvey.co.uk/mapping_api/v1/service/zxy/EPSG%3A3857/Outdoor 3857/{z}/{x}/{y}.png?key=ENTER API KEY HERE', {
+        maxZoom: 20,
+        minZoom: 7
+    }).addTo(map);
+
+    ////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////// Styles /////////////////////////////////////////////////////
+
+      var range1Marker = L.ExtraMarkers.icon({
+        icon: 'fa-medkit',
+        markerColor: 'green-light',
+        shape: 'square',
+        prefix: 'fa'
+      });
+
+      var range2Marker = L.ExtraMarkers.icon({
+        icon: 'fa-medkit',
+        markerColor: 'green',
+        shape: 'square',
+        prefix: 'fa'
+      });
+
+      var range3Marker = L.ExtraMarkers.icon({
+        icon: 'fa-medkit',
+        markerColor: 'yellow',
+        shape: 'square',
+        prefix: 'fa'
+      });
+
+      var range4Marker = L.ExtraMarkers.icon({
+        icon: 'fa-medkit',
+        markerColor: 'orange',
+        shape: 'square',
+        prefix: 'fa'
+      });
+
+      var range5Marker = L.ExtraMarkers.icon({
+        icon: 'fa-medkit',
+        markerColor: 'red',
+        shape: 'square',
+        prefix: 'fa'
+      });
+
+      var nearestMarker = L.ExtraMarkers.icon({
+        icon: 'fa-search',
+        markerColor: 'green',
+        shape: 'penta',
+        prefix: 'fa'
+      });
+
+
+    ////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////// Layers //////////////////////////////////////////////////
+
+
+    var markers = L.markerClusterGroup({
+      spiderfyOnMaxZoom: false,
+      showCoverageOnHover: false,
+      zoomToBoundsOnClick: false,
+      disableClusteringAtZoom:14
+    });
+
+    var gpLocations = L.geoJson(null, {
+      pointToLayer: function (feature, latlng) {
+        if (feature.properties.ratio >= 5000) {
+          return L.marker(latlng, {icon: range5Marker});
+        } else if (feature.properties.ratio >= 3000 && feature.properties.ratio < 5000) {
+          return L.marker(latlng, {icon: range4Marker});
+        } else if (feature.properties.ratio >= 2500 && feature.properties.ratio < 3000) {
+          return L.marker(latlng, {icon: range3Marker});
+        } else if (feature.properties.ratio >= 2000 && feature.properties.ratio < 2500) {
+          return L.marker(latlng, {icon: range2Marker});
+        } else if (feature.properties.ratio <= 2000) {
+          return L.marker(latlng, {icon: range1Marker});
+        }
+      },
+       onEachFeature: function (feature, layer) {
+           layer.bindPopup("<strong>Name:</strong> " + feature.properties.surgery_na);
+       }
+    });
+
+    // Nearest Feature layer will contain a single feature containing the nearest feature to searched or clicked location
+    var nearestFeature = L.geoJson(null, {
+      pointToLayer: function (feature, latlng) {
+        //return L.circleMarker(latlng, nearestMarkerStyle);
+        return L.marker(latlng, {icon: nearestMarker});
+      },
+      onEachFeature: function (feature, layer) {
+        layer.bindPopup("<strong>Name:</strong> " + feature.properties.surgery_na);
+      }
+    }).addTo(map);
+
+    var county_region = L.geoJson(null, {
+      style: {color: 'purple', weight: 2 }
+    }).addTo(map);
+
+    var click_region = L.geoJson(null, {
+      style: {color: 'red', weight: 2 }
+    }).addTo(map);
+
+    ////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////// Get Data //////////////////////////////////////////////
+
+    var sql = new cartodb.SQL({ user: 'CartoDB USERNAME HERE', format: 'geojson' });
+
+    sql.execute("select * from TABLE_NAME")
+      .done(function(geojson) {
+          gpLocations.addData(geojson);
+          markers.addLayer(gpLocations);
+          markers.addTo(map);
+          createTable(geojson);
+      });
+
+    sql.execute("select ST_SimplifyPreserveTopology(the_geom, 0.01) as the_geom, name from county_region")
+      .done(function(geojson) {
+          county_region.addData(geojson);
+          county_region.addTo(map);
+      });
+
+
+    function createTable(geojson) {
+      var array = [];
+      for (var i = 0; i < geojson.features.length; i++) {
+        array.push(geojson.features[i].properties);
+      }
+      $('#table').bootstrapTable({data: array});
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////// Attribution ////////////////////////////////////////////////
+
+    var credits = L.control.attribution().addTo(map);
+    credits.addAttribution("Contains OS data © Crown copyright [and database right] 2016, Contains Royal Mail data © Royal Mail copyright and Database right 2016, Contains National Statistics data © Crown copyright and database right 2016, Copyright © 2015, Re-used with the permission of the Health and Social Care Information Centre. All rights reserved");
+
+    ////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////// Events /////////////////////////////////////////////////////
+
+
+    map.on('click', function(e) {
+        nearestFeature.clearLayers();
+
+        $(".list-group").empty();
+
+        //Get the Lng/Lat from the on map click event and use Turf to turn it into a GeoJSON point
+        var clickedPt = turf.point([e.latlng.lng, e.latlng.lat]);
+
+        //Use Turf to buffer that clickedPt by a set distance
+        var unit = 'miles';
+
+        //Use Turf to find the nearest GP surgery
+        var nearest = turf.nearest(clickedPt, markers.toGeoJSON());
+        nearestFeature.addData(nearest);
+
+        var distance = turf.distance(clickedPt, nearest, unit);
+
+        $(".list-group").append(
+          '<li class="list-group-item"><strong>Name: </strong>' + nearest.properties.surgery_na + "</br>" +
+          "<strong>Patients:</strong> " + nearest.properties.total_pati + "</br>" + "<strong>Doctors:</strong> " + nearest.properties.total_doct + '</br>' + "<strong>Ratio:</strong> " + nearest.properties.ratio + '</br><strong>Distance: </strong>' + distance + ' miles' + '</li>');
+
+    });
+
+    county_region.on('click', function(e) {
+      //First we clear the nearestFeature and click_region layers as we only want a single feature whenever a click is made.
+      click_region.clearLayers();
+      nearestFeature.clearLayers();
+
+      //Next we get the event layer single polygon from the county region
+      var single_region = e.layer.toGeoJSON();
+
+      //Then add that to the click_region GeoJSON layer - this gives us the selected red polygon
+      click_region.addData(single_region);
+
+      //To use this polygon in Turf it needs to be a GeoJSON FeatureCollection
+      var single_region_fc = {
+        "type": "FeatureCollection",
+        "features": [
+          single_region
+        ]
+      };
+
+      //Next we use Turf function WITHIN to get all the GP surgeries that are within that single polygon
+      var ptsWithin = turf.within(gpLocations.toGeoJSON(), single_region_fc);
+
+      //We can then use the Turf function COUNT to total up the number of surgeries in the single polygon
+      var counted = turf.count(single_region_fc, gpLocations.toGeoJSON(), 'pt_count');
+
+      var totalDoctors = 0;
+      var totalPatients = 0;
+
+      //This code loops through the points that are within the single polygon and totals all doctors and all patients
+      for (var i = 0; i < ptsWithin.features.length; i++) {
+          totalDoctors = totalDoctors + ptsWithin.features[i].properties.total_doct;
+          totalPatients = totalPatients + ptsWithin.features[i].properties.total_pati;
+      }
+
+      //This is the county region ratio
+      var county_ratio = totalPatients/totalDoctors;
+
+      //Below is the code we already use for the map on click event, but it needs to be duplicated here as the user could click on a county region or an area of the map where there is no county.
+      var clickedPt = turf.point([e.latlng.lng, e.latlng.lat]);
+
+      var unit = 'miles';
+
+      var nearest = turf.nearest(clickedPt, markers.toGeoJSON());
+      nearestFeature.addData(nearest);
+
+      var distance = turf.distance(clickedPt, nearest, unit);
+
+      $(".list-group").empty();
+
+      $(".list-group").append(
+        '<li class="list-group-item"><strong>Name: </strong>' + nearest.properties.surgery_na + "</br>" +
+        "<strong>Patients:</strong> " + nearest.properties.total_pati + "</br>" + "<strong>Doctors:</strong> " + nearest.properties.total_doct + '</br>' + "<strong>Ratio:</strong> " + nearest.properties.ratio + '</br><strong>Distance: </strong>' + distance + ' miles' + '</li>');
+
+
+      $(".list-group").append(
+        '<li class="list-group-item"><strong>County Name: </strong>' + counted.features[0].properties.name + "</br>" +
+        '<strong>Number of GP Surgeries: </strong>' + counted.features[0].properties.pt_count + "</br>" +
+        '<strong>Number of Doctors: </strong>' + totalDoctors + "</br>" +
+        '<strong>Number of Patients: </strong>' + totalPatients + "</br>" +
+        '<strong>County Ratio: </strong>' + Math.round(county_ratio) + "</br>" +
+        '</li>');
+
+      $(".list-group").append('<li class="list-group-item"><div id="chart"></div></li>');
+
+        var chart = c3.generate({
+            data: {
+                columns: [
+                    ['County Region', county_ratio],
+                    ['Nearest', nearest.properties.ratio]
+                ],
+                type: 'bar'
+            },
+            bar: {
+                width: {
+                    ratio: 0.5
+                }
+            }
+        });
+
+      });
+
+    </script>
+  </body>
+</html>

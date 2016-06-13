@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head profile="http://www.w3.org/2005/10/profile">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>GP Surgeries and Patients</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="http://libs.cartocdn.com/cartodb.js/v3/3.15/themes/css/cartodb.css" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+  </head>
+
+  <style>
+    html, body {
+      height: 100%;
+      width: 100%;
+    }
+    body {
+      padding-top: 50px;
+    }
+
+    #map-container {
+      height: 100%;
+      padding: 0;
+    }
+
+    #map {
+      width: auto;
+      height: 100%;
+      box-shadow: 0 0 10px rgba(0,0,0,0.55);
+    }
+    .navbar .navbar-brand {
+      font-weight: bold;
+      font-size: 25px;
+      color: #FFFFFF;
+    }
+    .navbar {
+      background-image: linear-gradient(to bottom, #2b6988 0%, #1f4b61 100%);
+    }
+    .navbar-inverse .navbar-nav>li>a {
+      color: #fff;
+    }
+
+  </style>
+
+  <body>
+
+    <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="#">GP Surgeries and Patients</a>
+        </div>
+      </div>
+    </div>
+
+    <div id="map-container">
+      <div id="map"></div>
+    </div>
+
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+    <script type="text/javascript" src="http://libs.cartocdn.com/cartodb.js/v3/3.15/cartodb.js"></script>
+    <script type="text/javascript"src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+
+    <script>
+
+    ////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////// Map Configuration //////////////////////////////////////////
+
+    // Define map configuration
+    var map = new L.Map('map', {
+      center: [53.069016659603896, -0.31036376953125],
+      zoom: 7
+    });
+
+    ////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////// Base Maps //////////////////////////////////////////////////
+
+    L.tileLayer('https://api2.ordnancesurvey.co.uk/mapping_api/v1/service/zxy/EPSG%3A3857/Outdoor 3857/{z}/{x}/{y}.png?key=ENTER YOUR API KEY HERE', {
+        maxZoom: 20,
+        minZoom: 7
+    }).addTo(map);
+
+    ////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////// Overlays //////////////////////////////////////////////
+
+    var gpLocations = L.geoJson(null, {
+      pointToLayer: function (feature, latlng) {
+        return L.circleMarker(latlng);
+      }
+    }).addTo(map);
+
+    var sql = new cartodb.SQL({ user: 'CartoDB USERNAME HERE', format: 'geojson' });
+
+    sql.execute("select * from TABLE_NAME")
+      .done(function(geojson) {
+          gpLocations.addData(geojson);
+      });
+
+    ////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////// Attribution ////////////////////////////////////////////////
+
+    var credits = L.control.attribution().addTo(map);
+    credits.addAttribution("Contains OS data © Crown copyright [and database right] 2016, Contains Royal Mail data © Royal Mail copyright and Database right 2016, Contains National Statistics data © Crown copyright and database right 2016, Copyright © 2015, Re-used with the permission of the Health and Social Care Information Centre. All rights reserved");
+
+    </script>
+  </body>
+</html>

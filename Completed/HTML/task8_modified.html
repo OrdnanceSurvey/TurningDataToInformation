@@ -456,7 +456,7 @@
           datumTokenizer: Bloodhound.tokenizers.whitespace,
           queryTokenizer: Bloodhound.tokenizers.whitespace,
           remote: {
-              url: 'https://api.ordnancesurvey.co.uk/opennames/v1/find?query=%QUERY&key=***REMOVED***',
+              url: 'https://api.os.uk/opennames/v1/find?query=%QUERY&key=***REMOVED***',
               wildcard: '%QUERY',
               filter: function(json) {
                   uri = decodeURIComponent(json.header.uri);

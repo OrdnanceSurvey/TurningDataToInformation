@@ -34,7 +34,7 @@ function addXY() {
 
 function requestXY(gp, callback) {
   var options = {
-    uri: 'https://api.ordnancesurvey.co.uk/opennames/v1/find?key=***REMOVED***',
+    uri: 'https://api.os.uk/opennames/v1/find?key=***REMOVED***',
     qs: {
       query: gp.POSTCODE
     },

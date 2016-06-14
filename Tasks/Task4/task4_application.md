@@ -20,7 +20,7 @@ At present it does not show much, so let us change that by opening the same HTML
 Scroll to the bottom until you find the following code line
 
 ```
-L.tileLayer('https://api2.ordnancesurvey.co.uk/mapping_api/v1/service/zxy/EPSG%3A3857/Outdoor3857/{z}/{x}/{y}.png?key=ENTER API KEY HERE', {
+L.tileLayer('http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
 ```
 Use the OS Maps API key supplied earlier in the workshop here to add the base maps to our application.
 

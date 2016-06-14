@@ -194,7 +194,7 @@ So back to that function..
 ```javascript
 function requestXY(gp, callback) {
   var options = {
-    uri: 'https://api.ordnancesurvey.co.uk/opennames/v1/find?key=ENTER API KEY HERE',
+    uri: 'https://api.os.uk/opennames/v1/find?key=ENTER API KEY HERE',
     qs: {
       query: gp.POSTCODE
     },
@@ -233,7 +233,6 @@ Now when you run `node index_start.js` you'll see a whole bunch of JSON data pri
 ![geocoding!](screenshots/Screen Shot 2016-06-03 at 09.30.19.png)
 
 Notice how its added `EASTING` and `NORTHING` to the JSON data? You've just gone done a geocode.
-***REMOVED***
 
 Onward to step three!!
 
@@ -326,4 +325,3 @@ You'll notice we initiate our callback within an `async.setImmediate` method. Th
 Once the data is matched we go on convert it back to CSV data with `json2csv`, then we just write out the data with `fs`'s `writeFile` method.
 
 # TASK ONE COMPLETE
-***REMOVED***

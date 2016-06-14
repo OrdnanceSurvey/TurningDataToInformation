@@ -62,8 +62,8 @@ Click on the 'New' button, so that we can add a new WMTS connection.
 
 Fill in the details with:
 
-Name: OS Maps API
-URL: https://api2.ordnancesurvey.co.uk/mapping_api/v1/service/wmts?key=
+Name: CartoDB Maps
+URL: http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png
 
 A key will be provided in the workshop
 

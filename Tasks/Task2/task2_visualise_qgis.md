@@ -46,40 +46,11 @@ Hopefully you should see the above image showing the GP locations around the cou
 
 To give the GP locations some context we should add a base map. This could come from a number of different places, either local raster data, or local vector data such as OS OpenMap Local, or we could use a Web Map Service/Web Map Tile Service.
 
-We will use the later of these and connect to OS Maps API which is a Web Map Tile Service provided by the Ordnance Survey.
+We will use the latter of these and connect to an OSM Tile Service using a QGIS Plugin.
 
-Click on the 'Add WMS/WMTS Layer' button which looks like this:
+Click Plugins > Manage and Install Plugins. Search for 'quickmapservices' and click install. Once installed Click Web > QuickMapServices > OSM > OSM Mapnik
 
-![QGIS WMTS Button](./screenshots/qgis_wmts_button.png)
-
-And you will get the following dialogue box.
-
-![QGIS WMTS Dialogue](./screenshots/qgis_wmts_dialogue.png)
-
-Click on the 'New' button, so that we can add a new WMTS connection.
-
-![QGIS WMTS New Connection](./screenshots/qgis_wmts_new_connection.png)
-
-Fill in the details with:
-
-Name: CartoDB Maps
-URL: http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png
-
-A key will be provided in the workshop
-
-Click 'Ok' and then back in the original WMS/WMTS dialogue you should see the OS Maps API connection listed, and then click 'Connect'. QGIS will then connect to the OS Maps API and return a list of available layers.
-
-![QGIS OSMaps Layers](./screenshots/qgis_osmaps_layers.png)
-
-As our GP location data is in Eastings and Northings and our project is in EPSG:27700, we need to add one of the EPSG:27700 layers, the most useful would be the Light 27700.
-
-The Light 27700 has been designed by the Ordnance Survey cartographers to be used as a great base map for overlying other data and content.
-
-So select Light 27700, and then click 'Add'
-
-And your map should now look like this:
-
-![QGIS OSMaps Map](./screenshots/qgis_osmaps_map.png)
+You've added a basemap! :)
 
 You may need to shuffle the layer order in the QGIS Layers Panel, so that the GP locations is listed first in the order.
 
